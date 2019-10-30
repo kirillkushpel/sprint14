@@ -6,32 +6,18 @@ const { NODE_ENV, JWT_SECRET } = process.env;
 
 module.exports.createUser = (req, res) => {
   if (Object.keys(req.body).length === 0) return res.status(400).send({ message: 'Тело запроса пустое' });
-  // bcrypt.hash(req.body.password, 10)
-  //   .then((hash) => User.create({
-  //     email: req.body.email,
-  //     password: hash,
-  //     name: req.body.name,
-  //     about: req.body.about,
-  //     avatar: req.body.avatar,
-  //   }))
+
   const {
     name, about, avatar, email, password,
   } = req.body
   bcrypt.hash(password, 10)
-    .then((hash) => User.create({
-      name, about, avatar, email, password: hash,
-    })
+    .then((hash) => Object.assign({}, req.body, {password: hash})
     .then((user) => {
-      res.status(201).send({
-        _id: user._id,
-        email: user.email,
-        name: user.name,
-        about: user.about,
-        avatar: user.avatar,
-      });
+      const result = user.toObject();
+      delete result.password;
     })
-    .catch(() => res.status(400).send({ message: 'Произошла ошибка при создании пользователя' }));
-};
+    .catch(() => res.status(400).send({ message: 'Произошла ошибка при создании пользователя' })));
+    };
 
 module.exports.login = (req, res) => {
   const { email, password } = req.body;
